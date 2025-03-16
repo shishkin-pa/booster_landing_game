@@ -4,6 +4,13 @@
 #include <cstdlib>
 #include <ctime>
 
+// Функция для нормализации угла в диапазон [-180, 180]
+float normalizeAngle(float angle) {
+    while (angle > 180.0f) angle -= 360.0f;
+    while (angle < -180.0f) angle += 360.0f;
+    return angle;
+}
+
 Booster::Booster(float x, float y)
     : position(x, y), velocity(0, 0), angle(0), engineAngle(0), landed(false), exploded(false),
       thrustForce(0), angularVelocity(0), windForce(0, 0), engineTiltEnabled(true),
@@ -53,6 +60,9 @@ void Booster::update(float deltaTime) {
         angularVelocity -= angularDamping * angularVelocity * deltaTime; // Затухание вращения
         angle += angularVelocity * deltaTime;
 
+        // Нормализация угла
+        angle = normalizeAngle(angle);
+
         shape.setRotation(angle);
 
         // Обновление позиции и угла двигателей
@@ -99,28 +109,30 @@ void Booster::rotateGyroscope(float deltaAngle, float deltaTime) {
 
 void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatRect& groundBounds) {
     if (!exploded && shape.getGlobalBounds().intersects(platformBounds)) {
-        if (std::abs(velocity.y) < maxLandingSpeed && std::abs(angle) < 6) {
+        // Проверяем вертикальную и горизонтальную скорость, а также угол наклона
+        if (std::abs(velocity.y) < maxLandingSpeed && std::abs(velocity.x) < maxHorizontalLandingSpeed && std::abs(angle) < 6) {
             landed = true;
-            velocity = sf::Vector2f(0, 0);
-            shape.setFillColor(sf::Color::Green);
+            velocity = sf::Vector2f(0, 0); // Останавливаем бустер
+            shape.setFillColor(sf::Color::Green); // Меняем цвет на зелёный при успешной посадке
             if (!landingMessageShown) {
                 std::cout << "Congratulations! You've successfully landed the booster!" << std::endl;
                 landingMessageShown = true;
             }
         } else {
-            explode();
+            explode(); // Взрыв, если скорость или угол слишком большие
         }
     } else if (!exploded && shape.getGlobalBounds().intersects(groundBounds)) {
+        // Проверяем вертикальную скорость при посадке на землю
         if (std::abs(velocity.y) < maxLandingSpeed) {
             landed = true;
-            velocity = sf::Vector2f(0, 0);
-            shape.setFillColor(sf::Color::Yellow);
+            velocity = sf::Vector2f(0, 0); // Останавливаем бустер
+            shape.setFillColor(sf::Color::Yellow); // Меняем цвет на жёлтый при посадке на землю
             if (!groundLandingMessageShown) {
                 std::cout << "You cannot land the booster on the ground!" << std::endl;
                 groundLandingMessageShown = true;
             }
         } else {
-            explode();
+            explode(); // Взрыв, если скорость слишком большая
         }
     }
 }
@@ -156,7 +168,7 @@ sf::Vector2f Booster::getVelocity() const {
 }
 
 float Booster::getAngle() const {
-    return angle;
+    return angle; // Угол уже нормализован
 }
 
 float Booster::getInitialAngle() const {

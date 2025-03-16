@@ -57,6 +57,7 @@ private:
 
     // Константы
     const float maxLandingSpeed = 100.0f; // Максимальная скорость для успешного приземления
+    const float maxHorizontalLandingSpeed = 50.0f; // Максимальная горизонтальная скорость для успешного приземления
     const float airResistance = 0.2f; // Сопротивление воздуха
     const float angularDamping = 0.5f; // Затухание вращения
     const float maxEngineAngle = 30.0f; // Максимальный угол наклона двигателей
