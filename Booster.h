@@ -61,7 +61,7 @@ private:
     const float airResistance = 0.2f; // Сопротивление воздуха
     const float angularDamping = 0.5f; // Затухание вращения
     const float maxEngineAngle = 30.0f; // Максимальный угол наклона двигателей
-    const float gyroscopeTorque = 10.0f; // Момент силы гироскопа
+    const float gyroscopeTorque = 20.0f; // Момент силы гироскопа
 };
 
 #endif
