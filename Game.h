@@ -2,14 +2,13 @@
 #define GAME_H
 
 #include <SFML/Graphics.hpp>
-#include "Booster.h" // Добавлено включение заголовочного файла Booster.h
-#include "Platform.h" // Добавлено включение заголовочного файла Platform.h
-#include "MenuScreen.h" // Добавлено включение заголовочного файла MenuScreen.h
+#include "Booster.h"
+#include "Platform.h"
 
 class Game {
 public:
     Game();
-    ~Game();
+    ~Game(); // Деструктор для очистки памяти
     void run();
 
 private:
@@ -20,14 +19,15 @@ private:
     void drawMarker();
     void initializeGame();
 
-    sf::RenderWindow window;
-    Booster* booster; // Теперь компилятор знает, что такое Booster
-    Platform* platform; // Теперь компилятор знает, что такое Platform
-    sf::RectangleShape ground;
-    sf::Clock clock;
-    sf::Font font;
-
-    MenuScreen menuScreen; // Объект меню
+    sf::RenderWindow window; // Окно игры
+    Booster* booster; // Указатель на бустер
+    Platform platform; // Платформа
+    sf::RectangleShape ground; // Земля
+    sf::Clock clock; // Таймер для управления временем
+    sf::Font font; // Шрифт для HUD
+    bool windEnabled; // Включён ли ветер
+    float gravity; // Гравитация
+    bool engineTiltEnabled; // Включён ли наклон двигателей
 };
 
 #endif
