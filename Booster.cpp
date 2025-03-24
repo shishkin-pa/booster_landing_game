@@ -123,7 +123,7 @@ void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatR
         }
     } else if (!exploded && shape.getGlobalBounds().intersects(groundBounds)) {
         // Проверяем вертикальную скорость при посадке на землю
-        if (std::abs(velocity.y) < maxLandingSpeed) {
+        if (std::abs(velocity.y) < maxLandingSpeed && std::abs(velocity.x) < maxHorizontalLandingSpeed && std::abs(angle) < 6) {
             landed = true;
             velocity = sf::Vector2f(0, 0); // Останавливаем бустер
             shape.setFillColor(sf::Color::Yellow); // Меняем цвет на жёлтый при посадке на землю
