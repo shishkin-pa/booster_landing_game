@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <iostream>
+#include <cmath>
 
 Game::Game()
     : window(sf::VideoMode::getDesktopMode(), "Booster Landing Game", sf::Style::Fullscreen),
@@ -26,23 +27,29 @@ void Game::run() {
                 window.close();
 
             if (menuScreen.isMenuActive()) {
-                menuScreen.handleEvent(event); // Обработка событий меню
+                menuScreen.handleEvent(event);
             }
         }
 
         if (menuScreen.isMenuActive()) {
             window.clear();
-            menuScreen.draw(); // Отрисовка меню
+            menuScreen.draw();
             window.display();
         } else {
-            handleEvents(); // Обработка событий игры
-            update(); // Обновление игры
-            render(); // Отрисовка игры
+            // Инициализируем игру, если бустер и платформа ещё не созданы
+            if (booster == nullptr || platform == nullptr) {
+                initializeGame();
+            }
+            handleEvents();
+            update();
+            render();
         }
     }
 }
 
 void Game::handleEvents() {
+    if (booster == nullptr || platform == nullptr) return;
+
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed)
@@ -74,18 +81,22 @@ void Game::handleEvents() {
 }
 
 void Game::update() {
+    if (booster == nullptr || platform == nullptr) return;
+
     float deltaTime = clock.restart().asSeconds();
-    booster->update(deltaTime); // Обновление состояния бустера
-    booster->checkLanding(platform->getBounds(), ground.getGlobalBounds()); // Проверка посадки
+    booster->update(deltaTime);
+    booster->checkLanding(platform->getBounds(), ground.getGlobalBounds());
 }
 
 void Game::render() {
+    if (booster == nullptr || platform == nullptr) return;
+
     window.clear();
-    window.draw(ground); // Отрисовка земли
-    booster->draw(window); // Отрисовка бустера
-    platform->draw(window); // Отрисовка платформы
-    drawHUD(); // Отрисовка HUD
-    drawMarker(); // Отрисовка маркера
+    window.draw(ground);
+    booster->draw(window);
+    platform->draw(window);
+    drawHUD();
+    drawMarker();
     window.display();
 }
 
@@ -133,37 +144,86 @@ void Game::drawMarker() {
     sf::Vector2u windowSize = window.getSize();
 
     if (position.x < 0 || position.x > windowSize.x || position.y < 0 || position.y > windowSize.y) {
-        sf::CircleShape marker(10);
-        marker.setFillColor(sf::Color::Red);
+        // Рассчитываем минимальное расстояние до края экрана
+        float distanceToEdge = std::min(
+            std::min(position.x < 0 ? -position.x : windowSize.x - position.x,
+                    position.y < 0 ? -position.y : windowSize.y - position.y),
+            static_cast<float>(std::min(windowSize.x, windowSize.y))
+        );
 
-        // Позиция маркера
-        float markerX = position.x;
-        float markerY = position.y;
+        // Параметры масштабирования
+        const float maxEffectDistance = 2250.0f;  // Расстояние влияния на размер
+        const float minScale = 0.3f;             // Минимальный размер (при максимальном удалении)
+        const float maxScale = 1.5f;             // Максимальный размер (у края экрана)
+        
+        // Плавное изменение размера - уменьшается при отдалении
+        float scale = maxScale - (maxScale - minScale) * 
+                     std::min(distanceToEdge / maxEffectDistance, 1.0f);
 
-        if (position.x < 0) markerX = 10;
-        if (position.x > windowSize.x) markerX = windowSize.x - 10;
-        if (position.y < 0) markerY = 10;
-        if (position.y > windowSize.y) markerY = windowSize.y - 10;
+        // Цвет контура (темно-бордовый)
+        sf::Color outlineColor(100, 0, 0);
 
-        marker.setPosition(markerX, markerY);
-        window.draw(marker);
+        if (menuScreen.getMarkerType() == MarkerType::CIRCLE) {
+            // Circle marker
+            sf::CircleShape marker(8 * scale);  // Уменьшен базовый размер
+            marker.setFillColor(sf::Color::Red);
+            marker.setOutlineThickness(1.5f * scale);
+            marker.setOutlineColor(outlineColor);
+            
+            float markerX = position.x;
+            float markerY = position.y;
+            if (position.x < 0) markerX = 10 * scale;
+            if (position.x > windowSize.x) markerX = windowSize.x - 10 * scale;
+            if (position.y < 0) markerY = 10 * scale;
+            if (position.y > windowSize.y) markerY = windowSize.y - 10 * scale;
+            
+            marker.setPosition(markerX, markerY);
+            window.draw(marker);
+        } else {
+            // Triangle marker с дополнительным смещением вниз
+            sf::ConvexShape marker;
+            marker.setPointCount(3);
+            float baseWidth = 18 * scale;    // Уменьшенная ширина основания
+            float sideLength = 25 * scale;   // Уменьшенная длина сторон
+            float angle = booster->getAngle();
+            
+            // Позиция маркера с дополнительным смещением вниз
+            float markerX = position.x;
+            float markerY = position.y;
+            float verticalOffset = 20 * scale;  // Смещение вниз
+
+            if (position.x < 0) markerX = 15 * scale;
+            if (position.x > windowSize.x) markerX = windowSize.x - 15 * scale;
+            if (position.y < 0) markerY = verticalOffset;
+            if (position.y > windowSize.y) markerY = windowSize.y - verticalOffset + 8 * scale;
+
+            marker.setPosition(markerX, markerY);
+            marker.setPoint(0, sf::Vector2f(0, -sideLength));       // Вершина
+            marker.setPoint(1, sf::Vector2f(-baseWidth/2, 4 * scale)); // Левое основание
+            marker.setPoint(2, sf::Vector2f(baseWidth/2, 4 * scale));  // Правое основание
+            marker.setRotation(angle);
+            marker.setFillColor(sf::Color::Red);
+            marker.setOutlineThickness(1.5f * scale);
+            marker.setOutlineColor(outlineColor);
+            window.draw(marker);
+        }
     }
 }
 
 void Game::initializeGame() {
-    // Инициализация платформы и земли
+    if (booster != nullptr) delete booster;
+    if (platform != nullptr) delete platform;
+
     platform = new Platform(window.getSize().x / 2 - 100, window.getSize().y - 50);
     ground.setSize(sf::Vector2f(window.getSize().x, 50));
     ground.setFillColor(sf::Color::Green);
     ground.setPosition(0, window.getSize().y - 50);
 
-    // Инициализация бустера
-    float initialY = -1000.0f; // Фиксированная начальная высота
+    float initialY = -1000.0f;
     booster = new Booster(window.getSize().x / 2, initialY);
     booster->setEngineTiltEnabled(menuScreen.isEngineTiltEnabled());
     booster->setGravity(menuScreen.getGravity());
 
-    // Установка силы ветра (если ветер включен)
     if (menuScreen.isWindEnabled()) {
         booster->setWind(menuScreen.getWindForce());
     }

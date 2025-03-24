@@ -52,6 +52,17 @@ void Booster::update(float deltaTime) {
 
         // Обновление позиции
         position += velocity * deltaTime;
+
+        // Проверка высоты: если бустер выше 3500, возвращаем его на высоту 3500
+        const float maxHeight = 4000.0f;
+        if (position.y < -maxHeight) {
+            position.y = -maxHeight;
+            // Обнуляем вертикальную скорость, если она направлена вверх (отрицательная в SFML)
+            if (velocity.y < 0) {
+                velocity.y = 0;
+            }
+        }
+
         shape.setPosition(position);
 
         // Момент силы от двигателей
@@ -121,9 +132,9 @@ void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatR
         } else {
             explode(); // Взрыв, если скорость или угол слишком большие
         }
-    } else if (!exploded && shape.getGlobalBounds().intersects(groundBounds)) {
+    } else if (!exploded && position.y > 1000) {
         // Проверяем вертикальную скорость при посадке на землю
-        if (std::abs(velocity.y) < maxLandingSpeed) {
+        if (std::abs(velocity.y) < maxLandingSpeed && std::abs(velocity.x) < maxHorizontalLandingSpeed && std::abs(angle) < 6) {
             landed = true;
             velocity = sf::Vector2f(0, 0); // Останавливаем бустер
             shape.setFillColor(sf::Color::Yellow); // Меняем цвет на жёлтый при посадке на землю
