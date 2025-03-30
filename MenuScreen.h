@@ -3,12 +3,10 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "Marker.h"
 
 class MenuScreen {
 public:
     MenuScreen(sf::RenderWindow& window, sf::Font& font);
-
     void draw();
     void handleEvent(sf::Event& event);
     bool isMenuActive() const;
@@ -18,7 +16,6 @@ public:
     bool isWindEnabled() const;
     sf::Vector2f getWindForce() const;
     float getGravity() const;
-    MarkerType getMarkerType() const;
 
 private:
     void createMenu();
@@ -28,23 +25,28 @@ private:
 
     bool menuActive;
     int menuStep;
-    MarkerType markerType;
 
-    std::vector<sf::RectangleShape> markerButtons;
-    std::vector<sf::Text> markerButtonLabels;
-    std::vector<sf::RectangleShape> windButtons;
-    std::vector<sf::Text> windButtonLabels;
+    // Элементы для выбора наклона двигателей
     sf::RectangleShape tiltYesButton;
     sf::RectangleShape tiltNoButton;
     sf::Text tiltYesLabel;
     sf::Text tiltNoLabel;
+
+    // Элементы для выбора ветра
+    std::vector<sf::RectangleShape> windButtons;
+    std::vector<sf::Text> windButtonLabels;
+
+    // Элементы для настройки гравитации
     sf::RectangleShape gravitySlider;
     sf::RectangleShape gravitySliderHandle;
     sf::Text gravityLabel;
+
+    // Общие элементы
     sf::Text menuTitle;
     sf::RectangleShape startButton;
     sf::Text startButtonLabel;
 
+    // Настройки
     bool engineTiltEnabled;
     bool windEnabled;
     sf::Vector2f windForce;

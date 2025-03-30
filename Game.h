@@ -2,39 +2,56 @@
 #define GAME_H
 
 #include <SFML/Graphics.hpp>
+#include <string>
 #include "Booster.h"
 #include "Platform.h"
 #include "MenuScreen.h"
 #include "Marker.h"
 
-// Класс Game - основной класс игры, управляющий всеми процессами
 class Game {
 public:
-    Game();  // Конструктор
-    ~Game(); // Деструктор
-    void run(); // Главный цикл игры
+    Game();
+    ~Game();
+    void run();
+    void showExitButton(const std::string& message, const sf::Color& color); // Обновленный метод
+
+    bool isExitButtonVisible() const { return showExitButtonVisible; }
 
 private:
-    void handleEvents(); // Обработка событий (ввод пользователя)
-    void update();       // Обновление состояния игры
-    void render();       // Отрисовка игровых объектов
-    void drawHUD();      // Отрисовка интерфейса (HUD)
-    void drawMarker();   // Отрисовка маркера за краем экрана
-    void initializeGame(); // Инициализация игровых объектов
+    void handleEvents();
+    void update();
+    void render();
+    void drawHUD();
+    void drawMarker();
+    void initializeGame();
+    void updateCamera();
+    void initExitButton();
+    void initResultMessage();
+    void handleExitButtonEvent(sf::Event& event);
 
-    // Основное окно игры
     sf::RenderWindow window;
-    
-    // Основные игровые объекты
-    Booster* booster;    // Управляемый бустер
-    Platform* platform;  // Посадочная платформа
-    sf::RectangleShape ground; // Земля (нижняя граница)
-    sf::Clock clock;     // Игровые часы для измерения времени между кадрами
-    sf::Font font;       // Шрифт для текста
+    sf::View gameView;
+    Booster* booster;
+    Platform* platform;
+    sf::RectangleShape ground;
+    sf::Clock clock;
+    sf::Font font;
+    sf::Texture groundTexture;
+    sf::VertexArray groundVertices;
+    sf::Vector2u windowSize;
 
-    // Дополнительные элементы
-    MenuScreen menuScreen; // Экран меню
-    Marker marker;       // Маркер для отображения положения бустера за краем экрана
+    MenuScreen menuScreen;
+    Marker marker;
+
+    // Кнопка выхода и сообщение
+    sf::RectangleShape exitButton;
+    sf::Text exitButtonText;
+    sf::Text resultMessageText;
+    bool showExitButtonVisible = false;
+    std::string resultMessage;
+    sf::Color messageColor;
+    sf::RectangleShape messageBackground;
+    void initMessageBackground();
 };
 
 #endif // GAME_H
