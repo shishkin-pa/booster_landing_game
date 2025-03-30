@@ -1,5 +1,5 @@
 Команды для запуска игры через терминал:
 
-g++ -std=c++17 -o BoosterLandingGame main.cpp Game.cpp Booster.cpp Platform.cpp Engine.cpp MenuScreen.cpp -lsfml-graphics -lsfml-window -lsfml-system
+g++ -std=c++17 -o BoosterLandingGame main.cpp Game.cpp Booster.cpp Platform.cpp Engine.cpp MenuScreen.cpp Marker.cpp -lsfml-graphics -lsfml-window -lsfml-system
 
 ./BoosterLandingGame
