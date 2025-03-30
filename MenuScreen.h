@@ -3,11 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
-
-enum class MarkerType {
-    CIRCLE,
-    TRIANGLE
-};
+#include "Marker.h"
 
 class MenuScreen {
 public:
@@ -56,4 +52,4 @@ private:
     bool isDraggingSlider;
 };
 
-#endif
+#endif // MENUSCREEN_H

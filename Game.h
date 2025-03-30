@@ -2,32 +2,39 @@
 #define GAME_H
 
 #include <SFML/Graphics.hpp>
-#include "Booster.h" // Добавлено включение заголовочного файла Booster.h
-#include "Platform.h" // Добавлено включение заголовочного файла Platform.h
-#include "MenuScreen.h" // Добавлено включение заголовочного файла MenuScreen.h
+#include "Booster.h"
+#include "Platform.h"
+#include "MenuScreen.h"
+#include "Marker.h"
 
+// Класс Game - основной класс игры, управляющий всеми процессами
 class Game {
 public:
-    Game();
-    ~Game();
-    void run();
+    Game();  // Конструктор
+    ~Game(); // Деструктор
+    void run(); // Главный цикл игры
 
 private:
-    void handleEvents();
-    void update();
-    void render();
-    void drawHUD();
-    void drawMarker();
-    void initializeGame();
+    void handleEvents(); // Обработка событий (ввод пользователя)
+    void update();       // Обновление состояния игры
+    void render();       // Отрисовка игровых объектов
+    void drawHUD();      // Отрисовка интерфейса (HUD)
+    void drawMarker();   // Отрисовка маркера за краем экрана
+    void initializeGame(); // Инициализация игровых объектов
 
+    // Основное окно игры
     sf::RenderWindow window;
-    Booster* booster; // Теперь компилятор знает, что такое Booster
-    Platform* platform; // Теперь компилятор знает, что такое Platform
-    sf::RectangleShape ground;
-    sf::Clock clock;
-    sf::Font font;
+    
+    // Основные игровые объекты
+    Booster* booster;    // Управляемый бустер
+    Platform* platform;  // Посадочная платформа
+    sf::RectangleShape ground; // Земля (нижняя граница)
+    sf::Clock clock;     // Игровые часы для измерения времени между кадрами
+    sf::Font font;       // Шрифт для текста
 
-    MenuScreen menuScreen; // Объект меню
+    // Дополнительные элементы
+    MenuScreen menuScreen; // Экран меню
+    Marker marker;       // Маркер для отображения положения бустера за краем экрана
 };
 
-#endif
+#endif // GAME_H
