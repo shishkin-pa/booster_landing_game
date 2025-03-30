@@ -7,34 +7,36 @@
 #include "MenuScreen.h"
 #include "Marker.h"
 
-// Класс Game - основной класс игры, управляющий всеми процессами
 class Game {
 public:
-    Game();  // Конструктор
-    ~Game(); // Деструктор
-    void run(); // Главный цикл игры
+    Game();
+    ~Game();
+    void run();
 
 private:
-    void handleEvents(); // Обработка событий (ввод пользователя)
-    void update();       // Обновление состояния игры
-    void render();       // Отрисовка игровых объектов
-    void drawHUD();      // Отрисовка интерфейса (HUD)
-    void drawMarker();   // Отрисовка маркера за краем экрана
-    void initializeGame(); // Инициализация игровых объектов
+    void handleEvents();
+    void update();
+    void render();
+    void drawHUD();
+    void drawMarker();
+    void initializeGame();
+    void updateCamera();
 
-    // Основное окно игры
     sf::RenderWindow window;
+    sf::View gameView;
+    Booster* booster;
+    Platform* platform;
+    sf::RectangleShape ground;
+    sf::Clock clock;
+    sf::Font font;
     
-    // Основные игровые объекты
-    Booster* booster;    // Управляемый бустер
-    Platform* platform;  // Посадочная платформа
-    sf::RectangleShape ground; // Земля (нижняя граница)
-    sf::Clock clock;     // Игровые часы для измерения времени между кадрами
-    sf::Font font;       // Шрифт для текста
+    // Добавленные поля
+    sf::Texture groundTexture;
+    sf::VertexArray groundVertices;
+    sf::Vector2u windowSize; // Для хранения размера окна
 
-    // Дополнительные элементы
-    MenuScreen menuScreen; // Экран меню
-    Marker marker;       // Маркер для отображения положения бустера за краем экрана
+    MenuScreen menuScreen;
+    Marker marker;
 };
 
 #endif // GAME_H

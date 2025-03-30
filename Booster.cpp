@@ -84,36 +84,29 @@ void Booster::update(float deltaTime) {
 void Booster::applyThrust(float thrust) {
     if (!landed && !exploded) {
         thrustForce = thrust;
-
-        // Направление тяги зависит от угла наклона двигателей
-        float radians = (angle + engineAngle) * 3.14159265f / 180.0f;
+        
+        // Оригинальная формула тяги
+        float radians = (angle + (engineTiltEnabled ? engineAngle : 0)) * 3.14159265f / 180.0f;
         velocity.x += thrust * std::sin(radians);
         velocity.y -= thrust * std::cos(radians);
-
-        // Включаем огонь на двигателях
+        
         leftEngine.setFlameVisible(thrust > 0);
         rightEngine.setFlameVisible(thrust > 0);
-    } else {
-        // Выключаем огонь на двигателях
-        leftEngine.setFlameVisible(false);
-        rightEngine.setFlameVisible(false);
     }
 }
 
 void Booster::rotateEngines(float deltaAngle) {
     if (!landed && !exploded && engineTiltEnabled) {
         engineAngle += deltaAngle;
-
-        // Ограничение угла наклона двигателей
-        if (engineAngle > maxEngineAngle) engineAngle = maxEngineAngle;
-        if (engineAngle < -maxEngineAngle) engineAngle = -maxEngineAngle;
+        engineAngle = std::max(-maxEngineAngle, std::min(maxEngineAngle, engineAngle));
+        updateEngines();
     }
 }
 
 void Booster::rotateGyroscope(float deltaAngle, float deltaTime) {
     if (!landed && !exploded) {
-        // Медленная коррекция угла с помощью гироскопа
-        float torque = engineTiltEnabled ? gyroscopeTorque : gyroscopeTorque * 10;
+        // Оригинальная логика: гироскоп всегда работает, но с разной силой
+        float torque = engineTiltEnabled ? gyroscopeTorque * 0.3f : gyroscopeTorque;
         angularVelocity += torque * deltaAngle * deltaTime;
     }
 }
