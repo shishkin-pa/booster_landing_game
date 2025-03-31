@@ -135,6 +135,8 @@ void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatR
             landed = true;
             velocity = sf::Vector2f(0, 0);
             shape.setFillColor(sf::Color::Green);
+            leftEngine.setFlameVisible(false);  // Выключаем огонь
+            rightEngine.setFlameVisible(false); // Выключаем огонь
             if (!landingMessageShown) {
                 std::cout << "Congratulations! You've successfully landed the booster!" << std::endl;
                 if (game) game->showExitButton("Congratulations! You've successfully landed the booster!", sf::Color::Green);
@@ -150,6 +152,8 @@ void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatR
             landed = true;
             velocity = sf::Vector2f(0, 0);
             shape.setFillColor(sf::Color::Yellow);
+            leftEngine.setFlameVisible(false);  // Выключаем огонь
+            rightEngine.setFlameVisible(false); // Выключаем огонь
             if (!groundLandingMessageShown) {
                 std::cout << "You cannot land the booster on the ground!" << std::endl;
                 if (game) game->showExitButton("You cannot land the booster on the ground!", sf::Color::Yellow);

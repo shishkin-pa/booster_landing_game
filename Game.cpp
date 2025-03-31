@@ -16,10 +16,12 @@ Game::Game()
     groundVertices.setPrimitiveType(sf::Quads);
     groundVertices.resize(4);
     
-    // Настройка текста результата
     resultMessageText.setFont(font);
-    resultMessageText.setCharacterSize(36); // Увеличили размер
+    resultMessageText.setCharacterSize(36);
     resultMessageText.setStyle(sf::Text::Bold);
+    
+    initExitButton();
+    initRestartButton();
 }
 
 Game::~Game() {
@@ -68,8 +70,9 @@ void Game::handleEvents() {
         if (event.type == sf::Event::Closed)
             window.close();
 
-        if (showExitButtonVisible) { // Используем флаг видимости
+        if (showExitButtonVisible) {
             handleExitButtonEvent(event);
+            handleRestartButtonEvent(event);
         }
         else if (menuScreen.isMenuActive()) {
             menuScreen.handleEvent(event);
@@ -166,8 +169,6 @@ void Game::render() {
         // Настраиваем сообщение
         resultMessageText.setString(resultMessage);
         resultMessageText.setFillColor(messageColor);
-        
-        // Вычисляем цвет окантовки (средний между цветом текста и чёрным)
         sf::Color outlineColor(
             messageColor.r * 0.5f,
             messageColor.g * 0.5f,
@@ -176,33 +177,51 @@ void Game::render() {
         resultMessageText.setOutlineColor(outlineColor);
         resultMessageText.setOutlineThickness(3);
         
-        // Центрируем сообщение
         sf::FloatRect textBounds = resultMessageText.getLocalBounds();
         resultMessageText.setOrigin(textBounds.left + textBounds.width/2.0f,
                                   textBounds.top + textBounds.height/2.0f);
-        resultMessageText.setPosition(viewCenter.x, viewCenter.y - 80);
+        resultMessageText.setPosition(viewCenter.x, viewCenter.y - 120);
         
-        // Настраиваем кнопку
+        // Настраиваем кнопку рестарта
+        restartButton.setSize(sf::Vector2f(200, 50));
+        restartButton.setFillColor(sf::Color::White);
+        restartButton.setOutlineThickness(1);
+        restartButton.setOutlineColor(sf::Color(100, 100, 100));
+        restartButton.setOrigin(restartButton.getSize().x/2, restartButton.getSize().y/2);
+        restartButton.setPosition(viewCenter.x, viewCenter.y - 20);
+        
+        restartButtonText.setString("Restart game");
+        restartButtonText.setFont(font);
+        restartButtonText.setCharacterSize(24);
+        restartButtonText.setFillColor(sf::Color::Black);
+        restartButtonText.setOutlineThickness(0);
+        sf::FloatRect restartTextBounds = restartButtonText.getLocalBounds();
+        restartButtonText.setOrigin(restartTextBounds.left + restartTextBounds.width/2.0f,
+                                 restartTextBounds.top + restartTextBounds.height/2.0f);
+        restartButtonText.setPosition(restartButton.getPosition());
+        
+        // Настраиваем кнопку выхода
         exitButton.setSize(sf::Vector2f(200, 50));
         exitButton.setFillColor(sf::Color::White);
         exitButton.setOutlineThickness(1);
-        exitButton.setOutlineColor(sf::Color(100, 100, 100)); // Серый контур
+        exitButton.setOutlineColor(sf::Color(100, 100, 100));
         exitButton.setOrigin(exitButton.getSize().x/2, exitButton.getSize().y/2);
-        exitButton.setPosition(viewCenter.x, viewCenter.y + 20);
+        exitButton.setPosition(viewCenter.x, viewCenter.y + 50);
         
-        // Настраиваем текст кнопки
         exitButtonText.setString("Exit game");
         exitButtonText.setFont(font);
         exitButtonText.setCharacterSize(24);
         exitButtonText.setFillColor(sf::Color::Black);
         exitButtonText.setOutlineThickness(0);
-        sf::FloatRect buttonTextBounds = exitButtonText.getLocalBounds();
-        exitButtonText.setOrigin(buttonTextBounds.left + buttonTextBounds.width/2.0f,
-                               buttonTextBounds.top + buttonTextBounds.height/2.0f);
+        sf::FloatRect exitTextBounds = exitButtonText.getLocalBounds();
+        exitButtonText.setOrigin(exitTextBounds.left + exitTextBounds.width/2.0f,
+                               exitTextBounds.top + exitTextBounds.height/2.0f);
         exitButtonText.setPosition(exitButton.getPosition());
         
         // Рендерим элементы
         window.draw(resultMessageText);
+        window.draw(restartButton);
+        window.draw(restartButtonText);
         window.draw(exitButton);
         window.draw(exitButtonText);
     }
@@ -315,4 +334,45 @@ void Game::showExitButton(const std::string& message, const sf::Color& color) {
     showExitButtonVisible = true;
     resultMessage = message;
     messageColor = color;
+    
+    // Выключаем огонь двигателей при завершении игры
+    if (booster) {
+        booster->applyThrust(0);
+    }
+}
+
+void Game::initRestartButton() {
+    restartButton.setSize(sf::Vector2f(200, 50));
+    restartButton.setFillColor(sf::Color::White);
+    restartButton.setOutlineThickness(1);
+    restartButton.setOutlineColor(sf::Color::Black);
+    
+    restartButtonText.setFont(font);
+    restartButtonText.setString("Restart Game");
+    restartButtonText.setCharacterSize(24);
+    restartButtonText.setFillColor(sf::Color::Black);
+    
+    sf::FloatRect textRect = restartButtonText.getLocalBounds();
+    restartButtonText.setOrigin(textRect.left + textRect.width/2.0f,
+                             textRect.top + textRect.height/2.0f);
+}
+
+void Game::handleRestartButtonEvent(sf::Event& event) {
+    if (event.type == sf::Event::MouseButtonPressed) {
+        sf::Vector2f mousePos = window.mapPixelToCoords(
+            sf::Mouse::getPosition(window));
+        
+        if (restartButton.getGlobalBounds().contains(mousePos)) {
+            restartGame();
+        }
+    }
+}
+
+void Game::restartGame() {
+    delete booster;
+    delete platform;
+    booster = nullptr;
+    platform = nullptr;
+    showExitButtonVisible = false;
+    initializeGame();
 }

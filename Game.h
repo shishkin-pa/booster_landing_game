@@ -13,7 +13,7 @@ public:
     Game();
     ~Game();
     void run();
-    void showExitButton(const std::string& message, const sf::Color& color); // Обновленный метод
+    void showExitButton(const std::string& message, const sf::Color& color);
 
     bool isExitButtonVisible() const { return showExitButtonVisible; }
 
@@ -26,8 +26,11 @@ private:
     void initializeGame();
     void updateCamera();
     void initExitButton();
+    void initRestartButton();
     void initResultMessage();
     void handleExitButtonEvent(sf::Event& event);
+    void handleRestartButtonEvent(sf::Event& event);
+    void restartGame();
 
     sf::RenderWindow window;
     sf::View gameView;
@@ -43,9 +46,11 @@ private:
     MenuScreen menuScreen;
     Marker marker;
 
-    // Кнопка выхода и сообщение
+    // Кнопки и сообщения
     sf::RectangleShape exitButton;
+    sf::RectangleShape restartButton;
     sf::Text exitButtonText;
+    sf::Text restartButtonText;
     sf::Text resultMessageText;
     bool showExitButtonVisible = false;
     std::string resultMessage;
