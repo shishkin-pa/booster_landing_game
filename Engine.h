@@ -10,11 +10,13 @@ public:
     void setRotation(float angle);
     void draw(sf::RenderWindow& window, bool isExploded);
     void setFlameVisible(bool visible);
+    void setTexture(const sf::Texture& texture);
+    void setFlameTexture(const sf::Texture& texture);
 
 private:
-    sf::RectangleShape shape; // Графический объект двигателя
-    sf::RectangleShape flame; // Графический объект огня
-    bool flameVisible; // Видимость огня
+    sf::RectangleShape shape;
+    sf::RectangleShape flame;
+    bool flameVisible;
 };
 
-#endif
+#endif // ENGINE_H

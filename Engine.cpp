@@ -2,13 +2,20 @@
 #include <cmath>
 
 Engine::Engine() : flameVisible(false) {
-    shape.setSize(sf::Vector2f(10, 20)); // Размер двигателя
-    shape.setFillColor(sf::Color::Yellow); // Цвет двигателя
-    shape.setOrigin(shape.getSize().x / 2, shape.getSize().y); // Центр вращения внизу
+    shape.setSize(sf::Vector2f(180, 180));
+    shape.setOrigin(shape.getSize().x / 2, shape.getSize().y);
+    flame.setSize(sf::Vector2f(15, 30));
+    flame.setOrigin(flame.getSize().x / 2, flame.getSize().y);
+}
 
-    flame.setSize(sf::Vector2f(15, 30)); // Размер огня
-    flame.setFillColor(sf::Color::Red); // Цвет огня
-    flame.setOrigin(flame.getSize().x / 2, flame.getSize().y); // Центр вращения внизу
+void Engine::setTexture(const sf::Texture& texture) {
+    shape.setTexture(&texture);
+    shape.setFillColor(sf::Color::White); // Белый цвет для правильного отображения текстуры
+}
+
+void Engine::setFlameTexture(const sf::Texture& texture) {
+    flame.setTexture(&texture);
+    flame.setFillColor(sf::Color::White);
 }
 
 void Engine::setPosition(const sf::Vector2f& position) {
