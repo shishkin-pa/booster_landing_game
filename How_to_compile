@@ -1,5 +1,7 @@
 Команды для запуска игры через терминал:
 
+/cd "путь к папке в которой лежит игра"
+
 g++ -std=c++17 -o FAKI-Rocket main.cpp Game.cpp Booster.cpp Platform.cpp Engine.cpp MenuScreen.cpp Marker.cpp -lsfml-graphics -lsfml-window -lsfml-system
 
 ./FAKI-Rocket
