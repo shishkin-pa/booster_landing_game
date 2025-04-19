@@ -12,9 +12,11 @@ public:
     void draw(sf::RenderWindow& window) const;
 
 private:
-    sf::CircleShape markerShape;
+    sf::ConvexShape markerShape;
     bool isVisible;
     float distanceToPlatform;
+    sf::Vector2f platformPosition;
+    sf::Vector2f lastValidPosition; // Добавляем для хранения последней корректной позиции
 };
 
 #endif // MARKER_H

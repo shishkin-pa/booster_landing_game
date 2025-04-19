@@ -1,23 +1,39 @@
 #include "Platform.h"
 
-// Конструктор платформы
 Platform::Platform(float x, float y) {
-    shape.setSize(sf::Vector2f(200, 20)); // Установка размера платформы (ширина 200, высота 20)
-    shape.setFillColor(sf::Color::Blue);  // Установка синего цвета платформы
-    shape.setPosition(x, y);              // Установка позиции платформы
+    shape.setSize(sf::Vector2f(600, 40));
+    shape.setPosition(x, y);
+    shape.setFillColor(sf::Color::White);
 }
 
-// Отрисовка платформы в окне
 void Platform::draw(sf::RenderWindow& window) {
-    window.draw(shape); // Отрисовка прямоугольника платформы
+    window.draw(shape);
 }
 
-// Получение границ платформы для проверки коллизий
+void Platform::setColor(const sf::Color& color) {
+    shape.setFillColor(color);
+}
+
 sf::FloatRect Platform::getBounds() const {
-    return shape.getGlobalBounds(); // Возвращает глобальные границы прямоугольника
+    return shape.getGlobalBounds();
 }
 
-// Установка новой позиции платформы
 void Platform::setPosition(float x, float y) {
-    shape.setPosition(x, y); // Устанавливает новую позицию прямоугольника
+    shape.setPosition(x, y);
+}
+
+sf::Vector2f Platform::getPosition() const {
+    return shape.getPosition();
+}
+
+void Platform::setTexture(const sf::Texture& texture) {
+    shape.setTexture(&texture);
+}
+
+void Platform::setSize(const sf::Vector2f& size) {
+    shape.setSize(size);
+}
+
+sf::Vector2f Platform::getSize() const {
+    return shape.getSize();
 }

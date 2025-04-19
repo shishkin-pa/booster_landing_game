@@ -3,23 +3,20 @@
 
 #include <SFML/Graphics.hpp>
 
-// Класс Platform представляет платформу для посадки бустера
 class Platform {
 public:
-    // Конструктор, принимающий координаты платформы
     Platform(float x, float y);
-    
-    // Отрисовка платформы в окне
     void draw(sf::RenderWindow& window);
-    
-    // Получение границ платформы (для коллизий)
     sf::FloatRect getBounds() const;
-    
-    // Установка позиции платформы
     void setPosition(float x, float y);
+    sf::Vector2f getPosition() const;  // Добавленный метод
+    void setTexture(const sf::Texture& texture);
+    void setSize(const sf::Vector2f& size);
+    sf::Vector2f getSize() const;      // Добавленный метод
+    void setColor(const sf::Color& color);
 
 private:
-    sf::RectangleShape shape; // Графический объект платформы (прямоугольник)
+    sf::RectangleShape shape;
 };
 
 #endif

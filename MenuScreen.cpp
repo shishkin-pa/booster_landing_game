@@ -1,102 +1,118 @@
 #include "MenuScreen.h"
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 MenuScreen::MenuScreen(sf::RenderWindow& window, sf::Font& font)
     : window(window), font(font), menuActive(true), menuStep(0),
       engineTiltEnabled(true), windEnabled(false), windForce(0.f, 0.f),
-      gravity(200.0f), isDraggingSlider(false) {
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
+      gravity(200.0f), isDraggingSlider(false), showSplash(true) {
+    
+    // Загрузка текстуры заставки
+    if (!splashTexture.loadFromFile("splash.png")) {
+        std::cerr << "Failed to load splash.png" << std::endl;
+        // Создаем черный экран, если заставка не загрузилась
+        sf::Image img;
+        img.create(1, 1, sf::Color::Black);
+        splashTexture.loadFromImage(img);
+    }
+    
+    splashScreen.setSize(sf::Vector2f(window.getSize()));
+    splashScreen.setTexture(&splashTexture);
+    
+    // Загрузка текстур
+    if (!tiltYesTexture.loadFromFile("tilt_yes.png")) {
+        std::cerr << "Failed to load tilt_yes.png" << std::endl;
+    }
+    if (!tiltNoTexture.loadFromFile("tilt_no.png")) {
+        std::cerr << "Failed to load tilt_no.png" << std::endl;
+    }
+    if (!windNoneTexture.loadFromFile("wind_none.png")) {
+        std::cerr << "Failed to load wind_none.png" << std::endl;
+    }
+    if (!windWeakTexture.loadFromFile("wind_weak.png")) {
+        std::cerr << "Failed to load wind_weak.png" << std::endl;
+    }
+    if (!windModerateTexture.loadFromFile("wind_moderate.png")) {
+        std::cerr << "Failed to load wind_moderate.png" << std::endl;
+    }
+    if (!windStrongTexture.loadFromFile("wind_strong.png")) {
+        std::cerr << "Failed to load wind_strong.png" << std::endl;
+    }
+    if (!startGameTexture.loadFromFile("start_game.png")) {
+        std::cerr << "Failed to load start_game.png" << std::endl;
+    }
+    if (!gravityMinTexture.loadFromFile("gravity_min.png")) {
+        std::cerr << "Failed to load gravity_min.png" << std::endl;
+    }
+
     createMenu();
 }
 
 void MenuScreen::createMenu() {
-    sf::Vector2u windowSize = window.getSize();
-    float centerX = windowSize.x / 2.0f;
-    float centerY = windowSize.y / 2.0f;
+    // Явно получаем текущие размеры окна
+    const sf::Vector2u windowSize = window.getSize();
+    const float centerX = windowSize.x / 2.0f;
+    const float centerY = windowSize.y / 2.0f;
 
-    // Настройка заголовка меню
-    menuTitle.setFont(font);
-    menuTitle.setCharacterSize(40);
-    menuTitle.setFillColor(sf::Color::White);
-    menuTitle.setPosition(centerX - 150, centerY - 200);
+    // Кнопки наклона двигателя
+    tiltYesButton.setSize(sf::Vector2f(312, 312));
+    tiltYesButton.setPosition(centerX - 350, centerY - 156);
+    tiltYesButton.setTexture(&tiltYesTexture);
 
-    // Кнопки выбора наклона двигателей (Шаг 1)
-    tiltYesButton.setSize(sf::Vector2f(200, 50));
-    tiltYesButton.setPosition(centerX - 250, centerY - 100);
-    tiltYesButton.setFillColor(sf::Color::White);
-    tiltYesButton.setOutlineThickness(2);
-    tiltYesButton.setOutlineColor(sf::Color::Black);
+    tiltNoButton.setSize(sf::Vector2f(312, 312));
+    tiltNoButton.setPosition(centerX + 38, centerY - 156);
+    tiltNoButton.setTexture(&tiltNoTexture);
 
-    tiltNoButton.setSize(sf::Vector2f(200, 50));
-    tiltNoButton.setPosition(centerX + 50, centerY - 100);
-    tiltNoButton.setFillColor(sf::Color::White);
-    tiltNoButton.setOutlineThickness(2);
-    tiltNoButton.setOutlineColor(sf::Color::Black);
-
-    tiltYesLabel.setFont(font);
-    tiltYesLabel.setString("Yes");
-    tiltYesLabel.setCharacterSize(24);
-    tiltYesLabel.setFillColor(sf::Color::Black);
-    tiltYesLabel.setPosition(centerX - 240, centerY - 90);
-
-    tiltNoLabel.setFont(font);
-    tiltNoLabel.setString("No");
-    tiltNoLabel.setCharacterSize(24);
-    tiltNoLabel.setFillColor(sf::Color::Black);
-    tiltNoLabel.setPosition(centerX + 60, centerY - 90);
-
-    // Кнопки выбора ветра (Шаг 2)
-    std::vector<std::string> windOptions = {"No Wind", "Weak Wind", "Moderate Wind", "Strong Wind"};
-    for (int i = 0; i < windOptions.size(); ++i) {
-        sf::RectangleShape button(sf::Vector2f(200, 50));
-        button.setPosition(centerX - 100, centerY - 50 + i * 60);
-        button.setFillColor(sf::Color::White);
-        button.setOutlineThickness(2);
-        button.setOutlineColor(sf::Color::Black);
+    // Кнопки ветра
+    windButtons.clear();
+    const std::vector<sf::Texture*> windTextures = {
+        &windNoneTexture, &windWeakTexture, &windModerateTexture, &windStrongTexture
+    };
+    
+    const float totalWidth = 4 * 312 + 3 * 40;
+    const float startX = centerX - totalWidth / 2;
+    
+    for (int i = 0; i < 4; ++i) {
+        sf::RectangleShape button(sf::Vector2f(312, 312));
+        button.setPosition(startX + i * (312 + 40), centerY - 156);
+        button.setTexture(windTextures[i]);
         windButtons.push_back(button);
-
-        sf::Text label;
-        label.setFont(font);
-        label.setString(windOptions[i]);
-        label.setCharacterSize(24);
-        label.setFillColor(sf::Color::Black);
-        label.setPosition(centerX - 90, centerY - 40 + i * 60);
-        windButtonLabels.push_back(label);
     }
 
-    // Слайдер гравитации (Шаг 3)
-    gravitySlider.setSize(sf::Vector2f(300, 20));
-    gravitySlider.setPosition(centerX - 150, centerY + 150);
+    // Гравитация
+    gravityMinButton.setSize(sf::Vector2f(312, 312));
+    gravityMinButton.setPosition(centerX - 156, centerY - 364);
+    gravityMinButton.setTexture(&gravityMinTexture);
+
+    // Слайдер гравитации (трек)
+    gravitySliderTrack.setSize(sf::Vector2f(624, 20));
+    gravitySliderTrack.setPosition(centerX - 312, centerY);
+    gravitySliderTrack.setFillColor(sf::Color(100, 100, 100));
+    gravitySliderTrack.setOutlineThickness(5);  // Чёрный контур по умолчанию
+    gravitySliderTrack.setOutlineColor(sf::Color::Black);
+
+    // Слайдер гравитации (заполнение)
+    gravitySlider.setSize(sf::Vector2f(624, 20));
+    gravitySlider.setPosition(centerX - 312, centerY);
     gravitySlider.setFillColor(sf::Color::White);
-    gravitySlider.setOutlineThickness(2);
+    gravitySlider.setOutlineThickness(5);  // Чёрный контур
     gravitySlider.setOutlineColor(sf::Color::Black);
 
-    float initialSliderX = centerX - 150 + (gravity / 400.0f) * gravitySlider.getSize().x;
+    // Ползунок слайдера
     gravitySliderHandle.setSize(sf::Vector2f(20, 40));
-    gravitySliderHandle.setPosition(initialSliderX, centerY + 140);
-    gravitySliderHandle.setFillColor(sf::Color::Red);
-    gravitySliderHandle.setOutlineThickness(2);
+    gravitySliderHandle.setPosition(centerX - 312 + (gravity / 400.0f) * gravitySlider.getSize().x, centerY - 10);
+    gravitySliderHandle.setFillColor(sf::Color::Green);
+    gravitySliderHandle.setOutlineThickness(3);  // Контур тоньше для ползунка
     gravitySliderHandle.setOutlineColor(sf::Color::Black);
 
-    gravityLabel.setFont(font);
-    gravityLabel.setString("Gravity: " + std::to_string(static_cast<int>(gravity)));
-    gravityLabel.setCharacterSize(24);
-    gravityLabel.setFillColor(sf::Color::White);
-    gravityLabel.setPosition(centerX - 150, centerY + 180);
+    // Стартовая кнопка
+    startButton.setSize(sf::Vector2f(312, 312));
+    startButton.setPosition(centerX - 156, centerY + 64);
+    startButton.setTexture(&startGameTexture);
 
-    // Кнопка старта игры
-    startButton.setSize(sf::Vector2f(200, 50));
-    startButton.setPosition(centerX - 100, centerY + 250);
-    startButton.setFillColor(sf::Color::Green);
-    startButton.setOutlineThickness(2);
-    startButton.setOutlineColor(sf::Color::Black);
-
-    startButtonLabel.setFont(font);
-    startButtonLabel.setString("Start Game");
-    startButtonLabel.setCharacterSize(24);
-    startButtonLabel.setFillColor(sf::Color::Black);
-    startButtonLabel.setPosition(centerX - 90, centerY + 260);
+    // Сбрасываем состояние всех кнопок
+    updateButtonHover();
 }
 
 void MenuScreen::draw() {
@@ -104,30 +120,27 @@ void MenuScreen::draw() {
 
     window.clear(sf::Color(50, 50, 50));
 
-    if (menuStep == 0) {
-        menuTitle.setString("Enable Engine Tilt?");
-        window.draw(menuTitle);
-        window.draw(tiltYesButton);
-        window.draw(tiltYesLabel);
-        window.draw(tiltNoButton);
-        window.draw(tiltNoLabel);
+    if (showSplash) {
+        window.draw(splashScreen);
     }
-    else if (menuStep == 1) {
-        menuTitle.setString("Select Wind Strength");
-        window.draw(menuTitle);
-        for (size_t i = 0; i < windButtons.size(); ++i) {
-            window.draw(windButtons[i]);
-            window.draw(windButtonLabels[i]);
+    else {
+        // Отрисовка обычного меню
+        if (menuStep == 0) {
+            window.draw(tiltYesButton);
+            window.draw(tiltNoButton);
         }
-    }
-    else if (menuStep == 2) {
-        menuTitle.setString("Set Gravity");
-        window.draw(menuTitle);
-        window.draw(gravitySlider);
-        window.draw(gravitySliderHandle);
-        window.draw(gravityLabel);
-        window.draw(startButton);
-        window.draw(startButtonLabel);
+        else if (menuStep == 1) {
+            for (auto& button : windButtons) {
+                window.draw(button);
+            }
+        }
+        else if (menuStep == 2) {
+            window.draw(gravityMinButton);
+            window.draw(gravitySliderTrack);
+            window.draw(gravitySlider);
+            window.draw(gravitySliderHandle);
+            window.draw(startButton);
+        }
     }
 
     window.display();
@@ -136,20 +149,26 @@ void MenuScreen::draw() {
 void MenuScreen::handleEvent(sf::Event& event) {
     if (!menuActive) return;
 
+    if (showSplash) {
+        if (event.type == sf::Event::KeyPressed || 
+            event.type == sf::Event::MouseButtonPressed) {
+            showSplash = false;
+        }
+        return;
+    }
+
+    updateButtonHover();
+
     if (event.type == sf::Event::MouseButtonPressed) {
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
         if (menuStep == 0) {
             if (tiltYesButton.getGlobalBounds().contains(mousePos)) {
                 engineTiltEnabled = true;
-                tiltYesButton.setFillColor(sf::Color::Green); // Визуальная обратная связь
-                tiltNoButton.setFillColor(sf::Color::White);
                 menuStep = 1;
             }
             else if (tiltNoButton.getGlobalBounds().contains(mousePos)) {
                 engineTiltEnabled = false;
-                tiltNoButton.setFillColor(sf::Color::Red);
-                tiltYesButton.setFillColor(sf::Color::White);
                 menuStep = 1;
             }
         }
@@ -189,7 +208,26 @@ void MenuScreen::handleEvent(sf::Event& event) {
             }
         }
         else if (menuStep == 2) {
+            // Обработка клика по ползунку или треку слайдера
             if (gravitySliderHandle.getGlobalBounds().contains(mousePos)) {
+                isDraggingSlider = true;
+            }
+            else if (gravitySliderTrack.getGlobalBounds().contains(mousePos)) {
+                // Новый функционал: клик по треку мгновенно перемещает ползунок
+                float relativeX = mousePos.x - gravitySliderTrack.getPosition().x;
+                float percent = std::max(0.f, std::min(1.f, relativeX / gravitySliderTrack.getSize().x));
+                
+                gravity = percent * 400.0f;
+                gravitySliderHandle.setPosition(
+                    gravitySliderTrack.getPosition().x + percent * gravitySliderTrack.getSize().x - 10, // -10 для центровки
+                    gravitySliderHandle.getPosition().y
+                );
+                
+                // Обновляем цвет
+                gravitySliderHandle.setFillColor(
+                    (gravity < 190 || gravity > 210) ? sf::Color::Red : sf::Color::Green
+                );
+                
                 isDraggingSlider = true;
             }
             else if (startButton.getGlobalBounds().contains(mousePos)) {
@@ -202,12 +240,42 @@ void MenuScreen::handleEvent(sf::Event& event) {
     }
     else if (event.type == sf::Event::MouseMoved && isDraggingSlider) {
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-        float newX = std::max(gravitySlider.getPosition().x,
+        float newX = std::max(gravitySliderTrack.getPosition().x,
                             std::min(mousePos.x, 
-                                    gravitySlider.getPosition().x + gravitySlider.getSize().x));
-        gravitySliderHandle.setPosition(newX, gravitySliderHandle.getPosition().y);
-        gravity = (newX - gravitySlider.getPosition().x) / gravitySlider.getSize().x * 400.0f;
-        gravityLabel.setString("Gravity: " + std::to_string(static_cast<int>(gravity)));
+                                    gravitySliderTrack.getPosition().x + gravitySliderTrack.getSize().x));
+        gravitySliderHandle.setPosition(newX - 10, gravitySliderHandle.getPosition().y); // -10 для центровки
+        gravity = (newX - gravitySliderTrack.getPosition().x) / gravitySliderTrack.getSize().x * 400.0f;
+        
+        // Обновляем цвет
+        gravitySliderHandle.setFillColor(
+            (gravity < 190 || gravity > 210) ? sf::Color::Red : sf::Color::Green
+        );
+    }
+}
+
+void MenuScreen::updateButtonHover() {
+    sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    const sf::Color hoverColor(50, 100, 150); // Тёмно-голубой цвет контура
+
+    if (menuStep == 0) {
+        tiltYesButton.setOutlineThickness(tiltYesButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+        tiltYesButton.setOutlineColor(hoverColor); // Устанавливаем цвет
+        
+        tiltNoButton.setOutlineThickness(tiltNoButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+        tiltNoButton.setOutlineColor(hoverColor);
+    }
+    else if (menuStep == 1) {
+        for (auto& button : windButtons) {
+            button.setOutlineThickness(button.getGlobalBounds().contains(mousePos) ? 5 : 0);
+            button.setOutlineColor(hoverColor);
+        }
+    }
+    else if (menuStep == 2) {
+        startButton.setOutlineThickness(startButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+        startButton.setOutlineColor(hoverColor);
+        
+        gravityMinButton.setOutlineThickness(gravityMinButton.getGlobalBounds().contains(mousePos) ? 5 : 0);
+        gravityMinButton.setOutlineColor(hoverColor);
     }
 }
 
@@ -217,6 +285,9 @@ bool MenuScreen::isMenuActive() const {
 
 void MenuScreen::setMenuActive(bool active) {
     menuActive = active;
+    if (active) {
+        menuStep = 0;
+    }
 }
 
 bool MenuScreen::isEngineTiltEnabled() const {
@@ -233,4 +304,21 @@ sf::Vector2f MenuScreen::getWindForce() const {
 
 float MenuScreen::getGravity() const {
     return gravity;
+}
+
+void MenuScreen::resetMenu() {
+    // 1. Сбрасываем состояние
+    menuActive = true;
+    menuStep = 0;
+    showSplash = true;
+    isDraggingSlider = false;
+    
+    // 2. Пересоздаем элементы меню
+    createMenu();
+    
+    // 3. Сбрасываем настройки к значениям по умолчанию
+    engineTiltEnabled = true;
+    windEnabled = false;
+    windForce = sf::Vector2f(0.f, 0.f);
+    gravity = 200.0f;
 }

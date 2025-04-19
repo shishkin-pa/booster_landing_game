@@ -11,6 +11,7 @@ public:
     void handleEvent(sf::Event& event);
     bool isMenuActive() const;
     void setMenuActive(bool active);
+    void resetMenu();  // Добавляем новый метод для сброса меню
 
     bool isEngineTiltEnabled() const;
     bool isWindEnabled() const;
@@ -19,6 +20,7 @@ public:
 
 private:
     void createMenu();
+    void updateButtonHover();
 
     sf::RenderWindow& window;
     sf::Font& font;
@@ -26,25 +28,27 @@ private:
     bool menuActive;
     int menuStep;
 
-    // Элементы для выбора наклона двигателей
+    // Текстуры кнопок
+    sf::Texture tiltYesTexture;
+    sf::Texture tiltNoTexture;
+    sf::Texture windNoneTexture;
+    sf::Texture windWeakTexture;
+    sf::Texture windModerateTexture;
+    sf::Texture windStrongTexture;
+    sf::Texture startGameTexture;
+    sf::Texture gravityMinTexture;
+
+    // Кнопки
     sf::RectangleShape tiltYesButton;
     sf::RectangleShape tiltNoButton;
-    sf::Text tiltYesLabel;
-    sf::Text tiltNoLabel;
-
-    // Элементы для выбора ветра
     std::vector<sf::RectangleShape> windButtons;
-    std::vector<sf::Text> windButtonLabels;
-
-    // Элементы для настройки гравитации
-    sf::RectangleShape gravitySlider;
-    sf::RectangleShape gravitySliderHandle;
-    sf::Text gravityLabel;
-
-    // Общие элементы
-    sf::Text menuTitle;
     sf::RectangleShape startButton;
-    sf::Text startButtonLabel;
+    sf::RectangleShape gravityMinButton;
+
+    // Элементы слайдера
+    sf::RectangleShape gravitySlider;
+    sf::RectangleShape gravitySliderTrack;
+    sf::RectangleShape gravitySliderHandle;
 
     // Настройки
     bool engineTiltEnabled;
@@ -52,6 +56,10 @@ private:
     sf::Vector2f windForce;
     float gravity;
     bool isDraggingSlider;
+
+    sf::Texture splashTexture;
+    sf::RectangleShape splashScreen;
+    bool showSplash;
 };
 
 #endif // MENUSCREEN_H

@@ -2,7 +2,6 @@
 #define GAME_H
 
 #include <SFML/Graphics.hpp>
-#include <string>
 #include "Booster.h"
 #include "Platform.h"
 #include "MenuScreen.h"
@@ -12,11 +11,17 @@ class Game {
 public:
     Game();
     ~Game();
+    
     void run();
     void showExitButton(const std::string& message, const sf::Color& color);
-
+    
     bool isExitButtonVisible() const { return showExitButtonVisible; }
+    const sf::Texture& getBoosterTexture() const { return boosterTexture; }
+    const sf::Texture& getEngineTexture() const { return engineTexture; }
+    const sf::Texture& getPlatformTexture() const { return platformTexture; }
+    const sf::Texture& getFlameTexture(int index) const;
 
+    float YOffset;
 private:
     void handleEvents();
     void update();
@@ -25,38 +30,64 @@ private:
     void drawMarker();
     void initializeGame();
     void updateCamera();
-    void initExitButton();
-    void initRestartButton();
-    void initResultMessage();
+    void initExitButtons();
     void handleExitButtonEvent(sf::Event& event);
+    void handleRetryButtonEvent(sf::Event& event);
     void handleRestartButtonEvent(sf::Event& event);
+    void handleQuitButtonEvent(sf::Event& event);
+    void retryGame();
     void restartGame();
 
     sf::RenderWindow window;
     sf::View gameView;
     Booster* booster;
     Platform* platform;
-    sf::RectangleShape ground;
+    Platform* ground;
     sf::Clock clock;
     sf::Font font;
-    sf::Texture groundTexture;
-    sf::VertexArray groundVertices;
     sf::Vector2u windowSize;
+
+    // Фон
+    sf::Texture skyTexture;
+    sf::Texture starsTexture;
+    sf::Texture explosionTexture;
+    sf::Sprite skySprite;
+    sf::Sprite starsSprite;
+    sf::Sprite explosionSprite;
 
     MenuScreen menuScreen;
     Marker marker;
-
-    // Кнопки и сообщения
-    sf::RectangleShape exitButton;
+    
+    // Кнопки на конечном экране
+    sf::RectangleShape retryButton;
     sf::RectangleShape restartButton;
-    sf::Text exitButtonText;
-    sf::Text restartButtonText;
-    sf::Text resultMessageText;
+    sf::RectangleShape quitButton;
+    sf::Texture retryTexture;
+    sf::Texture restartTexture;
+    sf::Texture quitTexture;
+    
     bool showExitButtonVisible = false;
     std::string resultMessage;
     sf::Color messageColor;
-    sf::RectangleShape messageBackground;
-    void initMessageBackground();
+    sf::Text resultMessageText;
+
+    sf::Texture boosterTexture;
+    sf::Texture engineTexture;
+    sf::Texture flameTexture;
+    sf::Texture platformTexture;
+    sf::Texture groundTexture;
+
+    sf::Color generateRandomSkyColor(); // Новый метод
+    sf::Color currentSkyColor; // Текущий цвет неба
+
+    std::vector<sf::Texture> explosionTextures; // Для анимации взрыва
+
+    float explosionBackgroundAlpha; // Прозрачность фона взрыва (0-255)
+    bool isExplosionAnimating;      // Флаг анимации взрыва
+    sf::Clock explosionAnimClock;   // Таймер анимации
+    bool explosionAnimationComplete; // Флаг завершения анимации взрыва
+    int currentExplosionFrame; // Текущий кадр анимации взрыва
+    bool explosionAnimationPlaying; // Флаг проигрывания анимации
 };
 
 #endif // GAME_H

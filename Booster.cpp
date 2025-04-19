@@ -16,22 +16,29 @@ Booster::Booster(float x, float y, Game* game)
     : position(x, y), velocity(0, 0), angle(0), engineAngle(0), landed(false), exploded(false),
       thrustForce(0), angularVelocity(0), windForce(0, 0), engineTiltEnabled(true),
       gravity(0), landingMessageShown(false), groundLandingMessageShown(false), game(game) {
-    shape.setSize(sf::Vector2f(40, 60)); // Размер бустера
-    shape.setFillColor(sf::Color::Red); // Цвет бустера
-    shape.setOrigin(shape.getSize().x / 2, shape.getSize().y / 2); // Центр вращения в центре масс
+    
+    shape.setTexture(&game->getBoosterTexture());
+    shape.setSize(sf::Vector2f(160, 256));
+    shape.setOrigin(shape.getSize().x / 2, shape.getSize().y / 2);
     shape.setPosition(position);
 
-    // Случайная начальная скорость (вниз)
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    velocity.y = (std::rand() % 80 + 10); // Случайная вертикальная скорость (100 до 900)
-    velocity.x = 0; // Начальная горизонтальная скорость равна 0
-
-    // Случайный начальный угол наклона (от -60 до 60 градусов)
-    initialAngle = (std::rand() % 120 - 60); // Случайный угол от -60 до 60 градусов
+    velocity.y = (std::rand() % 80 + 10);
+    velocity.x = 0;
+    initialAngle = (std::rand() % 120 - 60);
     angle = initialAngle;
     shape.setRotation(angle);
 
-    // Инициализация двигателей
+    // Загружаем все текстуры пламени
+    std::vector<const sf::Texture*> flameTextures;
+    for (int i = 0; i < 6; ++i) {
+        flameTextures.push_back(&game->getFlameTexture(i));
+    }
+
+    leftEngine.setTexture(game->getEngineTexture());
+    rightEngine.setTexture(game->getEngineTexture());
+    leftEngine.setFlameTextures(flameTextures);
+    rightEngine.setFlameTextures(flameTextures);
+    
     updateEngines();
 }
 
@@ -76,8 +83,8 @@ void Booster::update(float deltaTime) {
         shape.setPosition(position);
 
         // Момент силы от двигателей
-        float torque = thrustForce * (shape.getSize().x / 2) * std::sin(engineAngle * 3.14159265f / 180.0f);
-        angularVelocity += torque * deltaTime;
+        float torque = thrustForce * (shape.getSize().x / 2 - 15) * (-std::sin(engineAngle * 3.14159265f / 180.0f));
+        angularVelocity += torque * deltaTime / 2;
         angularVelocity -= angularDamping * angularVelocity * deltaTime; // Затухание вращения
         angle += angularVelocity * deltaTime;
 
@@ -88,6 +95,9 @@ void Booster::update(float deltaTime) {
 
         // Обновление позиции и угла двигателей
         updateEngines();
+
+        leftEngine.update(deltaTime);
+        rightEngine.update(deltaTime);
     }
 }
 
@@ -99,7 +109,7 @@ void Booster::applyThrust(float thrust) {
         float radians = (angle + engineAngle) * 3.14159265f / 180.0f;
         velocity.x += thrust * std::sin(radians);
         velocity.y -= thrust * std::cos(radians);
-        
+
         leftEngine.setFlameVisible(thrust > 0);
         rightEngine.setFlameVisible(thrust > 0);
 
@@ -122,41 +132,42 @@ void Booster::rotateEngines(float deltaAngle) {
 void Booster::rotateGyroscope(float deltaAngle, float deltaTime) {
     if (!landed && !exploded) {
         // Медленная коррекция угла с помощью гироскопа
-        float torque = engineTiltEnabled ? gyroscopeTorque : gyroscopeTorque * 10;
+        float torque = engineTiltEnabled ? -gyroscopeTorque : gyroscopeTorque * 10;
         angularVelocity += torque * deltaAngle * deltaTime;
     }
 }
 
 void Booster::checkLanding(const sf::FloatRect& platformBounds, const sf::FloatRect& groundBounds) {
     if (!exploded && shape.getGlobalBounds().intersects(platformBounds)) {
+        // Проверка посадки на платформу
         if (std::abs(velocity.y) < maxLandingSpeed && 
             std::abs(velocity.x) < maxHorizontalLandingSpeed && 
             std::abs(angle) < 6) {
             landed = true;
             velocity = sf::Vector2f(0, 0);
-            shape.setFillColor(sf::Color::Green);
-            leftEngine.setFlameVisible(false);  // Выключаем огонь
-            rightEngine.setFlameVisible(false); // Выключаем огонь
+            //shape.setFillColor(sf::Color::Green);
+            leftEngine.setFlameVisible(false);
+            rightEngine.setFlameVisible(false);
             if (!landingMessageShown) {
-                std::cout << "Congratulations! You've successfully landed the booster!" << std::endl;
-                if (game) game->showExitButton("Congratulations! You've successfully landed the booster!", sf::Color::Green);
+                if (game) game->showExitButton("Congratulations! Successful landing!", sf::Color::Green);
                 landingMessageShown = true;
             }
         } else {
             explode();
         }
-    } else if (!exploded && position.y > 1000) {
+    } 
+    else if (!exploded && shape.getGlobalBounds().intersects(groundBounds)) {
+        // Проверка посадки на землю
         if (std::abs(velocity.y) < maxLandingSpeed && 
             std::abs(velocity.x) < maxHorizontalLandingSpeed && 
             std::abs(angle) < 6) {
             landed = true;
             velocity = sf::Vector2f(0, 0);
-            shape.setFillColor(sf::Color::Yellow);
-            leftEngine.setFlameVisible(false);  // Выключаем огонь
-            rightEngine.setFlameVisible(false); // Выключаем огонь
+            //shape.setFillColor(sf::Color::Yellow);
+            leftEngine.setFlameVisible(false);
+            rightEngine.setFlameVisible(false);
             if (!groundLandingMessageShown) {
-                std::cout << "You cannot land the booster on the ground!" << std::endl;
-                if (game) game->showExitButton("You cannot land the booster on the ground!", sf::Color::Yellow);
+                if (game) game->showExitButton("You landed on ground! Not perfect but safe.", sf::Color::Yellow);
                 groundLandingMessageShown = true;
             }
         } else {
@@ -216,14 +227,14 @@ void Booster::updateEngines() {
     float radians = angle * 3.14159265f / 180.0f; // Угол в радианах
 
     // Левый двигатель
-    float leftX = position.x - (shape.getSize().x / 2) * std::cos(radians) - (shape.getSize().y / 2) * std::sin(radians);
-    float leftY = position.y - (shape.getSize().x / 2) * std::sin(radians) + (shape.getSize().y / 2) * std::cos(radians);
+    float leftX = position.x - (shape.getSize().x / 2 - 15) * std::cos(radians) - (shape.getSize().y / 2) * std::sin(radians);
+    float leftY = position.y - (shape.getSize().x / 2 - 15) * std::sin(radians) + (shape.getSize().y / 2) * std::cos(radians);
     leftEngine.setPosition(sf::Vector2f(leftX, leftY));
     leftEngine.setRotation(angle + engineAngle);
 
     // Правый двигатель
-    float rightX = position.x + (shape.getSize().x / 2) * std::cos(radians) - (shape.getSize().y / 2) * std::sin(radians);
-    float rightY = position.y + (shape.getSize().x / 2) * std::sin(radians) + (shape.getSize().y / 2) * std::cos(radians);
+    float rightX = position.x + (shape.getSize().x / 2 - 15) * std::cos(radians) - (shape.getSize().y / 2) * std::sin(radians);
+    float rightY = position.y + (shape.getSize().x / 2 - 15) * std::sin(radians) + (shape.getSize().y / 2) * std::cos(radians);
     rightEngine.setPosition(sf::Vector2f(rightX, rightY));
     rightEngine.setRotation(angle + engineAngle);
 }
